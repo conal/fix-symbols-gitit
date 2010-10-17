@@ -60,4 +60,6 @@ subst from to = sub
    n = length from
 
 substs :: [(String, String)] -> String -> String
-substs = foldr (.) id . map (uncurry subst)
+substs = foldl (.) id . map (uncurry subst) . reverse
+
+-- The 'reverse' is to apply earlier rewrites first.  Or flip (.)
