@@ -44,6 +44,7 @@ codeSubst = substs [ ("forall","∀"),("->","→"),(":*","×")
                    , ("`lub`","⊔"),("`glb`","⊓"), ("lub","(⊔)"),("glb","(⊓)")
                    , ("undefined","⊥"), ("bottom","⊥")
                    , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
+                   , ("==","≡"), ("/=","≠")
                    ]
 
 -- TODO: Faster substitution.  Turn the from/to pairs into a single, fast
