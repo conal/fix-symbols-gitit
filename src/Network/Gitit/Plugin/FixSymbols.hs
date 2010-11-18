@@ -13,12 +13,15 @@
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
-  ( plugin, fixInline, fixBlock, dissect
+  ( plugin, fixInline, fixBlock
   ) where
 
 import Network.Gitit.Interface
 
-import Data.List (isPrefixOf)
+import Data.Maybe (fromMaybe)
+
+import qualified Data.Map as Map
+import Data.Map (Map)
 
 plugin :: Plugin
 plugin = PageTransform $ return . processWith fixInline . processWith fixBlock
@@ -28,42 +31,51 @@ plugin = PageTransform $ return . processWith fixInline . processWith fixBlock
 
 
 fixInline :: Inline -> Inline
-fixInline (Code s) = Code (codeSubst s)
+fixInline (Code s) = Code (translate s)
 fixInline x        = x
 
 fixBlock :: Block -> Block
 fixBlock (CodeBlock attr@(_,classes,_) s)
-  | "haskell" `elem` classes = CodeBlock attr (codeSubst s)
+  | "haskell" `elem` classes = CodeBlock attr (translate s)
 fixBlock x = x
 
--- TODO: transform lexemes instead of strings to avoid things like "-->"
--- becoming "-→".  Use the Text.Read.Lex module in Base.  Hm.  How to
--- reconstruct white space & comments?
+translate :: String -> String
+translate = concat . fixInfix . map translateLex . lexString
 
-codeSubst :: String -> String
-codeSubst = substs [ ("forall","∀"),("->","→"),(":*","×")
-                   , ("\\","λ")
-                   , ("`lub`","⊔"),("`glb`","⊓"), ("lub","(⊔)"),("glb","(⊓)")
-                   , ("undefined","⊥"), ("bottom","⊥")
-                   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
-                   , ("==","≡"), ("/=","≠")
-                   ]
+-- Turn "`(+)`" into "+", but before concat'ing
+fixInfix :: [String] -> [String]
+fixInfix [] = []
+fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
+fixInfix (s : ss) = s : fixInfix ss
 
--- TODO: Faster substitution.  Turn the from/to pairs into a single, fast
--- automaton.  I could also switch to a single-pass algorithm, instead of
--- one pass per from/to pair.
+stripParens :: String -> Maybe String
+stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
+stripParens _ = Nothing
 
-subst :: String -> String -> String -> String
-subst from to = sub
- where
-   sub :: String -> String
-   sub "" = ""
-   sub str | from `isPrefixOf` str = to ++ sub (drop n str)
-   sub (c:cs) = c : sub cs
-   n = length from
+translateLex :: String -> String
+translateLex s = fromMaybe s $ Map.lookup s substMap 
 
-substs :: [(String, String)] -> String -> String
-substs = foldl (.) id . map (uncurry subst) . reverse
+substMap :: Map String String
+substMap = Map.fromList $
+  [ ("forall","∀"),("->","→"),(":*","×")
+  , ("\\","λ")
+  , ("lub","(⊔)"),("glb","(⊓)")
+  , ("undefined","⊥"), ("bottom","⊥")
+  , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
+  , ("==","≡"), ("/=","≠")
+  
+  , ("alpha", "α"), ("iota", "ι"), ("varrho", "ϱ"), ("beta", "β")
+  , ("kappa", "κ"), ("sigma", "σ"), ("gamma", "γ"), ("lambda", "λ")
+  , ("varsigma", "ς"), ("delta", "δ"), ("mu", "μ"), ("tau", "τ")
+  , ("epsilon", "ϵ"), ("nu", "ν"), ("upsilon", "υ"), ("varepsilon", "ε")
+  , ("xi", "ξ"), ("phi", "ϕ"), ("zeta", "ζ"), ("o", "ο"), ("varphi", "φ")
+  , ("eta", "η"), ("pi ", "π"), ("chi", "χ"), ("theta", "θ"), ("varpi", "ϖ")
+  , ("psi", "ψ"), ("vartheta", "ϑ"), ("rho", "ρ"), ("omega", "ω")
+  
+  , ("Gamma", "Γ"), ("Xi", "Ξ"), ("Phi", "Φ"), ("Delta", "Δ"), ("Pi", "Π")
+  , ("Psi", "Ψ"), ("Theta", "Θ"), ("Sigma", "Σ"), ("Omega", "Ω")
+  , ("Lambda", "Λ"), ("Upsilon", "Υ") 
+  ]
 
 -- The 'reverse' is to apply earlier rewrites first.  Or flip (.)
 
