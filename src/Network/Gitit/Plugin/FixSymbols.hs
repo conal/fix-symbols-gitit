@@ -1,4 +1,4 @@
--- {-# LANGUAGE #-}
+{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_GHC -Wall #-}
 ----------------------------------------------------------------------
 -- |
@@ -12,7 +12,9 @@
 -- Turn some Haskell symbols into pretty math symbols
 ----------------------------------------------------------------------
 
-module Network.Gitit.Plugin.FixSymbols (plugin) where
+module Network.Gitit.Plugin.FixSymbols
+  ( plugin, fixInline, fixBlock, dissect
+  ) where
 
 import Network.Gitit.Interface
 
@@ -64,3 +66,13 @@ substs :: [(String, String)] -> String -> String
 substs = foldl (.) id . map (uncurry subst) . reverse
 
 -- The 'reverse' is to apply earlier rewrites first.  Or flip (.)
+
+-- Experiments in string dissection. Simplified lexing.
+
+-- | Dissect a string of haskell code into lexemes.
+-- Mainly uses Prelude's 'lex', but preserves spaces.
+lexString :: String -> [String]
+lexString "" = []
+lexString (c:s') | c `elem` " \n\t" = [c] : lexString s'
+lexString s | [(h,t)] <- lex s = h : lexString t
+lexString (c:s') = [c] : lexString s'
