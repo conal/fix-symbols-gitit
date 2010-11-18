@@ -69,7 +69,7 @@ substMap = Map.fromList $
   , ("varsigma", "ς"), ("delta", "δ"), ("mu", "μ"), ("tau", "τ")
   , ("epsilon", "ϵ"), ("nu", "ν"), ("upsilon", "υ"), ("varepsilon", "ε")
   , ("xi", "ξ"), ("phi", "ϕ"), ("zeta", "ζ"), ("o", "ο"), ("varphi", "φ")
-  , ("eta", "η"), ("pi ", "π"), ("chi", "χ"), ("theta", "θ"), ("varpi", "ϖ")
+  , ("eta", "η"), ("pi", "π"), ("chi", "χ"), ("theta", "θ"), ("varpi", "ϖ")
   , ("psi", "ψ"), ("vartheta", "ϑ"), ("rho", "ρ"), ("omega", "ω")
   
   , ("Gamma", "Γ"), ("Xi", "Ξ"), ("Phi", "Φ"), ("Delta", "Δ"), ("Pi", "Π")
