@@ -40,13 +40,21 @@ fixBlock (CodeBlock attr@(_,classes,_) s)
 fixBlock x = x
 
 translate :: String -> String
-translate = concat . fixInfix . map translateLex . lexString
+translate = concat . fixInfix . map translateLex . fixLex . lexString
 
 -- Turn "`(+)`" into "+", but before concat'ing
 fixInfix :: [String] -> [String]
 fixInfix [] = []
 fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
+
+-- Semantic brackets: "[","|" --> "[|",  "|","]" --> "|]"
+fixLex :: [String] -> [String]
+fixLex [] = []
+fixLex ("[":"|":ss) = "[|" : fixLex ss
+fixLex ("|":"]":ss) = "|]" : fixLex ss
+fixLex (s : ss) = s : fixLex ss
+
 
 stripParens :: String -> Maybe String
 stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
@@ -58,11 +66,15 @@ translateLex s = fromMaybe s $ Map.lookup s substMap
 substMap :: Map String String
 substMap = Map.fromList $
   [ ("forall","∀"),("->","→"),(":*","×")
+  , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
   , ("lub","(⊔)"),("glb","(⊓)")
+  , ("mempty","∅"), ("mappend","(⊕)")
   , ("undefined","⊥"), ("bottom","⊥")
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
+  , (":->", "↣"), (":->:","↠")
+  , ("[|","〚"), ("|]","〛")  -- semantic brackets
   
   , ("alpha", "α"), ("iota", "ι"), ("varrho", "ϱ"), ("beta", "β")
   , ("kappa", "κ"), ("sigma", "σ"), ("gamma", "γ"), ("lambda", "λ")
