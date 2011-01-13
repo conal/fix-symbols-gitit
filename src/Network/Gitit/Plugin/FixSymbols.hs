@@ -18,6 +18,7 @@ module Network.Gitit.Plugin.FixSymbols
 
 import Network.Gitit.Interface
 
+import Data.Char (isUpper)
 import Data.Maybe (fromMaybe)
 
 import qualified Data.Map as Map
@@ -48,13 +49,13 @@ fixInfix [] = []
 fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
--- Semantic brackets: "[","|" --> "[|",  "|","]" --> "|]"
+-- Misc tweaks on lexeme streams
 fixLex :: [String] -> [String]
 fixLex [] = []
-fixLex ("[":"|":ss) = "[|" : fixLex ss
+fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss
+fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
 fixLex (s : ss) = s : fixLex ss
-
 
 stripParens :: String -> Maybe String
 stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
@@ -65,7 +66,7 @@ translateLex s = fromMaybe s $ Map.lookup s substMap
 
 substMap :: Map String String
 substMap = Map.fromList $
-  [ ("forall","∀"),("->","→"),(":*","×")
+  [ ("forall","∀"),("->","→"),(".","∘"),(":*","×")
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
   , ("lub","(⊔)"),("glb","(⊓)")
