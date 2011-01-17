@@ -20,5 +20,9 @@ Library
   Build-Depends:       base<5, containers, gitit
   Exposed-Modules:     
                        Network.Gitit.Plugin.FixSymbols
+
+-- experiment in haddock + gitit. Add the following
+--   Exposed-Modules:
+--                        Network.Gitit.Plugin.Foo
                        
   ghc-options:         -Wall
