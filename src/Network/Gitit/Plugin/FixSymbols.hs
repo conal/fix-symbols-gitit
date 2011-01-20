@@ -74,20 +74,24 @@ substMap = Map.fromList $
   , ("undefined","⊥"), ("bottom","⊥")
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
+  , ("≅","=~")
   , (":->", "↣"), (":->:","↠")
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
-  
-  , ("alpha", "α"), ("iota", "ι"), ("varrho", "ϱ"), ("beta", "β")
-  , ("kappa", "κ"), ("sigma", "σ"), ("gamma", "γ"), ("lambda", "λ")
-  , ("varsigma", "ς"), ("delta", "δ"), ("mu", "μ"), ("tau", "τ")
-  , ("epsilon", "ϵ"), ("nu", "ν"), ("upsilon", "υ"), ("varepsilon", "ε")
-  , ("xi", "ξ"), ("phi", "ϕ"), ("zeta", "ζ"), ("o", "ο"), ("varphi", "φ")
-  , ("eta", "η"), ("pi", "π"), ("chi", "χ"), ("theta", "θ"), ("varpi", "ϖ")
-  , ("psi", "ψ"), ("vartheta", "ϑ"), ("rho", "ρ"), ("omega", "ω")
-  
-  , ("Gamma", "Γ"), ("Xi", "Ξ"), ("Phi", "Φ"), ("Delta", "Δ"), ("Pi", "Π")
-  , ("Psi", "Ψ"), ("Theta", "Θ"), ("Sigma", "Σ"), ("Omega", "Ω")
-  , ("Lambda", "Λ"), ("Upsilon", "Υ") 
+
+  , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
+  , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
+  , ("iota","ι") , ("kappa","κ") , ("lambda","λ") , ("mu","μ") , ("nu","ν")
+  , ("xi","ξ") , ("omicron","ο") , ("pi","π") , ("rho","ρ") , ("sigma","σ")
+  , ("tau","τ") , ("upsilon","υ") , ("phi","φ") , ("chi","χ") , ("psi","ψ")
+  , ("omega","ω")
+
+  , ("Alpha","Α") , ("Beta","Β") , ("Gamma","Γ") , ("Delta","Δ")
+  , ("Epsilon","Ε") , ("Zeta","Ζ") , ("Eta","Η") , ("Theta","Θ")
+  , ("Iota","Ι") , ("Kappa","Κ") , ("Lambda","Λ") , ("Mu","Μ") , ("Nu","Ν")
+  , ("Xi","Ξ") , ("Omicron","Ο") , ("Pi","Π") , ("Rho","Ρ") , ("Sigma","Σ")
+  , ("Tau","Τ") , ("Upsilon","Υ") , ("Phi","Φ") , ("Chi","Χ") , ("Psi","Ψ")
+  , ("Omega","Ω")
+
   ]
 
 -- The 'reverse' is to apply earlier rewrites first.  Or flip (.)
