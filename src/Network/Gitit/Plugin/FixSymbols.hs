@@ -49,13 +49,20 @@ fixInfix [] = []
 fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
--- Misc tweaks on lexeme streams
+-- Misc tweaks on lexeme streams, including determining whether a "." is a
+-- function composition or part of forall or a qualified name.
 fixLex :: [String] -> [String]
 fixLex [] = []
 fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss
+fixLex (ss@("forall":_)) = before ++ (dotLex:after) -- forall a b c. ...
+ where
+   (before,(".":after)) = break (== ".") ss
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
 fixLex (s : ss) = s : fixLex ss
+
+dotLex :: String
+dotLex = "#dot#"
 
 stripParens :: String -> Maybe String
 stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
@@ -64,9 +71,23 @@ stripParens _ = Nothing
 translateLex :: String -> String
 translateLex s = fromMaybe s $ Map.lookup s substMap 
 
+{- 
+
+I tried thin spaces (http://www.cs.tut.fi/~jkorpela/chars/spaces.html)
+to make up for substituted symbols often being shorter.
+
+three-per-em space 	foo bar
+four-per-em space 	foo bar
+six-per-em space 	foo bar
+hair space	 	foo bar
+
+However, standard fat spaces get substituted for these thin ones.
+
+-}
+
 substMap :: Map String String
 substMap = Map.fromList $
-  [ ("forall","∀"),("->","→"),(".","∘"),(":*","×"),("=>","⟹")
+  [ ("forall","∀"),(dotLex,"."),("->","→"),(".","∘"),(":*","×"),("=>","⇒")
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
   , ("lub","(⊔)"),("glb","(⊓)")
@@ -76,7 +97,7 @@ substMap = Map.fromList $
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
   , ("=~","≅")
-  , (":->", "↣"), (":->:","↠")
+  , (":->", "↣"), (":->:","⤕")
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
