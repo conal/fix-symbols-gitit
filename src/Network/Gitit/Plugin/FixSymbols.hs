@@ -20,9 +20,12 @@ import Network.Gitit.Interface
 
 import Data.Char (isUpper)
 import Data.Maybe (fromMaybe)
+import Data.List (isSuffixOf)
 
 import qualified Data.Map as Map
 import Data.Map (Map)
+
+type Unop a = a -> a
 
 plugin :: Plugin
 plugin = PageTransform $ return . processWith fixInline . processWith fixBlock
@@ -30,32 +33,39 @@ plugin = PageTransform $ return . processWith fixInline . processWith fixBlock
 -- mkPageTransform :: Data a => (a -> a) -> Plugin
 -- mkPageTransform fn = PageTransform $ return . processWith fn
 
-
-fixInline :: Inline -> Inline
+fixInline :: Unop Inline
 fixInline (Code s) = Code (translate s)
 fixInline x        = x
 
-fixBlock :: Block -> Block
+fixBlock :: Unop Block
 fixBlock (CodeBlock attr@(_,classes,_) s)
-  | "haskell" `elem` classes = CodeBlock attr (translate s)
+  | "haskell" `elem` classes = CodeBlock attr (translate (dropBogus s))
 fixBlock x = x
 
-translate :: String -> String
+-- Drop lines that end with: error "bogus case pending compiler fix"
+-- To do: maybe move to another plugin
+dropBogus :: Unop String
+dropBogus = unlines . filter (not . bogus) . lines
+
+bogus :: String -> Bool
+bogus = isSuffixOf "error \"bogus case pending compiler fix\""
+
+translate :: Unop String
 translate = concat . fixInfix . map translateLex . fixLex . lexString
 
 -- Turn "`(+)`" into "+", but before concat'ing
-fixInfix :: [String] -> [String]
+fixInfix :: Unop [String]
 fixInfix [] = []
 fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
 -- Misc tweaks on lexeme streams, including determining whether a "." is a
 -- function composition or part of forall or a qualified name.
-fixLex :: [String] -> [String]
+fixLex :: Unop [String]
 fixLex [] = []
 fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss
-fixLex (ss@("forall":_)) = before ++ (dotLex:after) -- forall a b c. ...
+fixLex (ss@("forall":_)) = before ++ (dotLex: fixLex after) -- forall a b c. ...
  where
    (before,(".":after)) = break (== ".") ss
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
@@ -68,7 +78,7 @@ stripParens :: String -> Maybe String
 stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
 stripParens _ = Nothing
 
-translateLex :: String -> String
+translateLex :: Unop String
 translateLex s = fromMaybe s $ Map.lookup s substMap 
 
 {- 
@@ -97,7 +107,8 @@ substMap = Map.fromList $
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
   , ("=~","≅")
-  , (":->", "↣"), (":->:","⤕")
+  , (":->", "↣"), (":->:","↛") -- or: ⇉, ⇥
+  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝") -- or ⇨
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
