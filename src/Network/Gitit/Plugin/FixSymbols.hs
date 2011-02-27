@@ -10,6 +10,7 @@
 -- Stability   :  experimental
 -- 
 -- Turn some Haskell symbols into pretty math symbols
+-- Many are selected from <http://xahlee.org/Periodic_dosage_dir/unicode.html>
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
@@ -101,14 +102,14 @@ substMap = Map.fromList $
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
   , ("lub","(⊔)"),("glb","(⊓)")
-  , ("mempty","∅"), ("mappend","(⊕)")
-  , ("<*>","⊛")
+  , ("mempty","∅"), ("mappend","(⊕)"), ("op","(⊙)")
+  -- , ("<*>","⊛")
   , ("undefined","⊥"), ("bottom","⊥")
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
   , ("=~","≅")
   , (":->", "↣"), (":->:","↛") -- or: ⇉, ⇥
-  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝") -- or ⇨
+  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
