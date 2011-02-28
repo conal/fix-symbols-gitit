@@ -29,14 +29,14 @@ import Data.Map (Map)
 type Unop a = a -> a
 
 plugin :: Plugin
-plugin = PageTransform $ return . processWith fixInline . processWith fixBlock
+plugin = PageTransform $ return . bottomUp fixInline . bottomUp fixBlock
 
 -- mkPageTransform :: Data a => (a -> a) -> Plugin
--- mkPageTransform fn = PageTransform $ return . processWith fn
+-- mkPageTransform fn = PageTransform $ return . bottomUp fn
 
 fixInline :: Unop Inline
-fixInline (Code s) = Code (translate s)
-fixInline x        = x
+fixInline (Code attr s) = Code attr (translate s)
+fixInline x             = x
 
 fixBlock :: Unop Block
 fixBlock (CodeBlock attr@(_,classes,_) s)
