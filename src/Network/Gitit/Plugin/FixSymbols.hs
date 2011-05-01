@@ -35,8 +35,11 @@ plugin = PageTransform $ return . bottomUp fixInline . bottomUp fixBlock
 -- mkPageTransform fn = PageTransform $ return . bottomUp fn
 
 fixInline :: Unop Inline
-fixInline (Code attr s) = Code attr (translate s)
+fixInline (Code attr@(_,classes,_) s)
+  | "url" `notElem` classes = Code attr (translate s)
 fixInline x             = x
+
+-- The url exception is thanks to Travis Cardwell.
 
 fixBlock :: Unop Block
 fixBlock (CodeBlock attr@(_,classes,_) s)
@@ -60,13 +63,16 @@ fixInfix [] = []
 fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
+isQuantifier :: String -> Bool
+isQuantifier = (`elem` ["forall","exists"])
+
 -- Misc tweaks on lexeme streams, including determining whether a "." is a
 -- function composition or part of forall or a qualified name.
 fixLex :: Unop [String]
 fixLex [] = []
 fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss
-fixLex (ss@("forall":_)) = before ++ (dotLex: fixLex after) -- forall a b c. ...
+fixLex (ss@(q:_)) | isQuantifier q = before ++ (dotLex: fixLex after) -- forall a b c. ...
  where
    (before,(".":after)) = break (== ".") ss
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
@@ -98,7 +104,8 @@ However, standard fat spaces get substituted for these thin ones.
 
 substMap :: Map String String
 substMap = Map.fromList $
-  [ ("forall","∀"),(dotLex,"."),("->","→"),(".","∘"),(":*","×"),("=>","⇒")
+  [ ("forall","∀"),("exists","∃"),(dotLex,".")
+  , ("->","→"),(".","∘"),(":*","×"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
   , ("lub","(⊔)"),("glb","(⊓)")
@@ -111,6 +118,7 @@ substMap = Map.fromList $
   , (":->", "↣"), (":->:","↛") -- or: ⇉, ⇥
   , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
+  , ("||","∨"), ("&&","∧") -- maybe
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
   , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
