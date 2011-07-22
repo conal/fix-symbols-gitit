@@ -14,7 +14,7 @@
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
-  ( plugin, fixInline, fixBlock
+  ( plugin, rewriter, fixInline, fixBlock
   ) where
 
 import Network.Gitit.Interface
@@ -28,8 +28,11 @@ import Data.Map (Map)
 
 type Unop a = a -> a
 
+rewriter :: Unop Pandoc
+rewriter = bottomUp fixInline . bottomUp fixBlock
+
 plugin :: Plugin
-plugin = PageTransform $ return . bottomUp fixInline . bottomUp fixBlock
+plugin = PageTransform $ return . rewriter
 
 -- mkPageTransform :: Data a => (a -> a) -> Plugin
 -- mkPageTransform fn = PageTransform $ return . bottomUp fn
@@ -117,6 +120,7 @@ substMap = Map.fromList $
   , ("=~","≅")
   , (":->", "↣"), (":->:","↛") -- or: ⇉, ⇥
   , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
+  , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
   , ("||","∨"), ("&&","∧") -- maybe
 
