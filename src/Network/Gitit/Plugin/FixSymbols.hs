@@ -107,7 +107,8 @@ However, standard fat spaces get substituted for these thin ones.
 
 substMap :: Map String String
 substMap = Map.fromList $
-  [ ("forall","∀"),("exists","∃"),(dotLex,".")
+  [ ("<=","≤"), (">=", "≥")
+  , ("forall","∀"),("exists","∃"),(dotLex,".")
   , ("->","→"),(".","∘"),(":*","×"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
