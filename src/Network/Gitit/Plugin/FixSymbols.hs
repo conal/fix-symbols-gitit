@@ -11,6 +11,12 @@
 -- 
 -- Turn some Haskell symbols into pretty math symbols
 -- Many are selected from <http://xahlee.org/Periodic_dosage_dir/unicode.html>
+-- 
+-- TODO: move specialized rewrites out of substMap. Instead, allow a
+-- metadata field, such as:
+-- 
+--   substMap: [("abutWE","⇔"), ("abutSN","⇕")]
+-- 
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
