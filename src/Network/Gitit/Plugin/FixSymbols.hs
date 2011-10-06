@@ -70,15 +70,19 @@ isQuantifier :: String -> Bool
 isQuantifier = (`elem` ["forall","exists"])
 
 -- Misc tweaks on lexeme streams, including determining whether a "." is a
--- function composition or part of forall or a qualified name.
+-- function composition, part of forall, a qualified name, or the end of a
+-- sentence in a comment.
 fixLex :: Unop [String]
 fixLex [] = []
 fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss
-fixLex (ss@(q:_)) | isQuantifier q = before ++ (dotLex: fixLex after) -- forall a b c. ...
+fixLex (ss@(q:_)) | isQuantifier q = before ++ (dotLex : fixLex after) -- forall a b c. ...
  where
    (before,(".":after)) = break (== ".") ss
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
+-- fixLex (s@(c:_):".":ss)
+--   | not (isSpace c) && (null ss || isSpace (head (head ss))) = fixLex ((s++"."):ss) -- end of sentence
+fixLex (s:".":ss@(" ":_)) | s /= " " = s : dotLex : fixLex ss -- end of sentence
 fixLex (s : ss) = s : fixLex ss
 
 dotLex :: String
@@ -109,6 +113,7 @@ substMap :: Map String String
 substMap = Map.fromList $
   [ ("<=","≤"), (">=", "≥")
   , ("forall","∀"),("exists","∃"),(dotLex,".")
+  , ("undecided", "…")
   , ("->","→"),(".","∘"),(":*","×"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
   , (":*:","×"), (":+:","+"), (":.","∘")
   , ("\\","λ")
@@ -124,6 +129,7 @@ substMap = Map.fromList $
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
   , ("||","∨"), ("&&","∧") -- maybe
+  , ("abutWE","⇔"), ("abutSN","⇕")
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
   , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
