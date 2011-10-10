@@ -135,7 +135,7 @@ substMap = Map.fromList $
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
   , ("||","∨"), ("&&","∧") -- maybe
-  , ("abutWE","⇔"), ("abutSN","⇕")
+  , ("abutWE","(⇔)"), ("abutSN","(⇕)")
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
   , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
