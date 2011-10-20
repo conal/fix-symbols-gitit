@@ -145,7 +145,7 @@ substMap = Map.fromList $
   , ("=~","≅")
   -- Move subsets of the rest into specific pages, via the "subst-map"
   -- metadata tag.
-  , (":->", "↣"), (":->:","⇢")
+  , (":->", "↣"), (":->:","⇰") -- or ⇢, ↦, ↣, ➵, ➟
   , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
