@@ -12,11 +12,12 @@
 -- Turn some Haskell symbols into pretty math symbols
 -- Many are selected from <http://xahlee.org/Periodic_dosage_dir/unicode.html>
 -- 
--- TODO: move specialized rewrites out of substMap. Instead, allow a
--- metadata field, such as:
+-- You can also add specialized rewrites via the "subst-map" metadata
+-- field, e.g.,
 -- 
---   substMap: [("abutWE","⇔"), ("abutSN","⇕")]
--- 
+--   subst-map: [("abutWE","⇔"), ("abutSN","⇕")]
+--
+-- However, as of 2011-10-20, gitit is failing to parse. Investigating.
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
@@ -29,31 +30,41 @@ import Data.Char (isUpper)
 import Data.Maybe (fromMaybe)
 import Data.List (isSuffixOf)
 
+import Data.Monoid (Monoid(..))
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Control.Applicative ((<$>))
+
+import Control.Monad.State.Class (get)
 
 type Unop a = a -> a
 
-rewriter :: Unop Pandoc
-rewriter = bottomUp fixInline . bottomUp fixBlock
+rewriter :: Subst -> Unop Pandoc
+rewriter subst = bottomUp (fixInline subst) . bottomUp (fixBlock subst)
 
 plugin :: Plugin
-plugin = PageTransform $ return . rewriter
+-- plugin = PageTransform $ return . rewriter
+
+plugin = PageTransform $ \ p ->
+  do Context { ctxMeta = meta } <- get
+     liftIO $ putStrLn $ "meta data: " ++ show meta
+     let specials = Map.fromList (fromMaybe [] (read <$> lookup "subst-map" meta))
+     return $ rewriter (specials `mappend` substMap) p
 
 -- mkPageTransform :: Data a => (a -> a) -> Plugin
 -- mkPageTransform fn = PageTransform $ return . bottomUp fn
 
-fixInline :: Unop Inline
-fixInline (Code attr@(_,classes,_) s)
-  | "url" `notElem` classes = Code attr (translate s)
-fixInline x             = x
+fixInline :: Subst -> Unop Inline
+fixInline subst (Code attr@(_,classes,_) s)
+  | "url" `notElem` classes = Code attr (translate subst s)
+fixInline _ x             = x
 
 -- The url exception is thanks to Travis Cardwell.
 
-fixBlock :: Unop Block
-fixBlock (CodeBlock attr@(_,classes,_) s)
-  | "haskell" `elem` classes = CodeBlock attr (translate (dropBogus s))
-fixBlock x = x
+fixBlock :: Subst -> Unop Block
+fixBlock subst (CodeBlock attr@(_,classes,_) s)
+  | "haskell" `elem` classes = CodeBlock attr (translate subst (dropBogus s))
+fixBlock _ x = x
 
 -- Drop lines that end with: error "bogus case pending compiler fix"
 -- To do: maybe move to another plugin
@@ -63,8 +74,10 @@ dropBogus = unlines . filter (not . bogus) . lines
 bogus :: String -> Bool
 bogus = isSuffixOf "error \"bogus case pending compiler fix\""
 
-translate :: Unop String
-translate = concat . fixInfix . map translateLex . fixLex . lexString
+type Subst = Map String String
+
+translate :: Subst -> Unop String
+translate subst = concat . fixInfix . map (translateLex subst) . fixLex . lexString
 
 -- Turn "`(+)`" into "+", but before concat'ing
 fixInfix :: Unop [String]
@@ -98,8 +111,8 @@ stripParens :: String -> Maybe String
 stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
 stripParens _ = Nothing
 
-translateLex :: Unop String
-translateLex s = fromMaybe s $ Map.lookup s substMap 
+translateLex :: Subst -> Unop String
+translateLex subst s = fromMaybe s $ Map.lookup s subst
 
 {- 
 
@@ -115,7 +128,7 @@ However, standard fat spaces get substituted for these thin ones.
 
 -}
 
-substMap :: Map String String
+substMap :: Subst
 substMap = Map.fromList $
   [ ("<=","≤"), (">=", "≥")
   , ("forall","∀"),("exists","∃"),(dotLex,".")
@@ -130,7 +143,9 @@ substMap = Map.fromList $
   , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
   , ("=~","≅")
-  , (":->", "↣"), (":->:","↛") -- or: ⇉, ⇥
+  -- Move subsets of the rest into specific pages, via the "subst-map"
+  -- metadata tag.
+  , (":->", "↣"), (":->:","⇢")
   , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets

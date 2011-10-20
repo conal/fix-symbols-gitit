@@ -17,7 +17,7 @@ Package-Url:         http://github.com/conal/fix-symbols-gitit
 Library
   hs-Source-Dirs:      src
   Extensions:
-  Build-Depends:       base<5, containers, gitit >= 0.7.3.12
+  Build-Depends:       base<5, containers, mtl, gitit >= 0.7.3.12
   Exposed-Modules:     
                        Network.Gitit.Plugin.FixSymbols
 
