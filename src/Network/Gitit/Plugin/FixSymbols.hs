@@ -15,13 +15,11 @@
 -- You can also add specialized rewrites via the "subst-map" metadata
 -- field, e.g.,
 -- 
---   subst-map: [("abutWE","⇔"), ("abutSN","⇕")]
---
--- However, as of 2011-10-20, gitit is failing to parse. Investigating.
+--   substMap: [("abutWE","⇔"), ("abutSN","⇕")]
 ----------------------------------------------------------------------
 
 module Network.Gitit.Plugin.FixSymbols
-  ( plugin, rewriter, fixInline, fixBlock
+  ( plugin, rewriter, fixInline, fixBlock, Unop, Subst
   ) where
 
 import Network.Gitit.Interface
@@ -37,6 +35,7 @@ import Control.Applicative ((<$>))
 
 import Control.Monad.State.Class (get)
 
+-- | Transformation
 type Unop a = a -> a
 
 rewriter :: Subst -> Unop Pandoc
@@ -74,6 +73,7 @@ dropBogus = unlines . filter (not . bogus) . lines
 bogus :: String -> Bool
 bogus = isSuffixOf "error \"bogus case pending compiler fix\""
 
+-- | String substitution
 type Subst = Map String String
 
 translate :: Subst -> Unop String
