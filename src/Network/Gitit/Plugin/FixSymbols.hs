@@ -3,7 +3,7 @@
 ----------------------------------------------------------------------
 -- |
 -- Module      :  Network.Gitit.Plugin.FixSymbols
--- Copyright   :  (c) Conal Elliott 2010
+-- Copyright   :  (c) Conal Elliott 2010-2013
 -- License     :  BSD3
 -- 
 -- Maintainer  :  conal@conal.net
@@ -39,7 +39,7 @@ import Control.Monad.State.Class (get)
 type Unop a = a -> a
 
 rewriter :: Subst -> Unop Pandoc
-rewriter subst = bottomUp (fixInline subst) . bottomUp (fixBlock subst)
+rewriter specials = bottomUp (fixInline specials) . bottomUp (fixBlock specials)
 
 plugin :: Plugin
 -- plugin = PageTransform $ return . rewriter
@@ -47,22 +47,26 @@ plugin :: Plugin
 plugin = PageTransform $ \ p ->
   do Context { ctxMeta = meta } <- get
      liftIO $ putStrLn $ "meta data: " ++ show meta
-     let specials = Map.fromList (fromMaybe [] (read <$> lookup "subst-map" meta))
-     return $ rewriter (specials `mappend` substMap) p
+     let specials = Map.fromList (fromMaybe [] (read <$> lookup "substMap" meta))
+     return $ rewriter specials p
 
 -- mkPageTransform :: Data a => (a -> a) -> Plugin
 -- mkPageTransform fn = PageTransform $ return . bottomUp fn
 
 fixInline :: Subst -> Unop Inline
-fixInline subst (Code attr@(_,classes,_) s)
+fixInline specials (Code attr@(_,classes,_) s)
   | "url" `notElem` classes = Code attr (translate subst s)
-fixInline _ x             = x
+ where
+    subst = specials `mappend` substMap
+fixInline _ x               = x
 
 -- The url exception is thanks to Travis Cardwell.
 
 fixBlock :: Subst -> Unop Block
-fixBlock subst (CodeBlock attr@(_,classes,_) s)
+fixBlock specials (CodeBlock attr@(_,classes,_) s)
   | "haskell" `elem` classes = CodeBlock attr (translate subst (dropBogus s))
+ where
+    subst = specials `mappend` substMap
 fixBlock _ x = x
 
 -- Drop lines that end with: error "bogus case pending compiler fix"
@@ -93,8 +97,10 @@ isQuantifier = (`elem` ["forall","exists"])
 -- sentence in a comment.
 fixLex :: Unop [String]
 fixLex [] = []
-fixLex ("[":"|":ss) = "[|" : fixLex ss   -- semantic bracket
-fixLex ("|":"]":ss) = "|]" : fixLex ss
+fixLex ("[":"|":ss) = "[|" : fixLex ss   -- open  semantic bracket
+fixLex ("|":"]":ss) = "|]" : fixLex ss   -- close semantic bracket
+fixLex ("[":"=":ss) = "[=" : fixLex ss   -- less defined ⊑
+fixLex ("]":"=":ss) = "]=" : fixLex ss   -- more defined ⊒
 fixLex (ss@(q:_)) | isQuantifier q = before ++ (dotLex : fixLex after) -- forall a b c. ...
  where
    (before,(".":after)) = break (== ".") ss
@@ -131,22 +137,27 @@ However, standard fat spaces get substituted for these thin ones.
 substMap :: Subst
 substMap = Map.fromList $
   [ ("<=","≤"), (">=", "≥")
+  , ("intersect", "(∩)"), ("union", "(∪)"), ("elem", "(∈)"), ("member", "(∈)")
   , ("forall","∀"),("exists","∃"),(dotLex,".")
   , ("undecided", "…")
-  , ("->","→"),(".","∘"),(":*","×"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
-  , (":*:","×"), (":+:","+"), (":.","∘")
+  , ("->","→"),(".","∘"),(":*","×"),(":+","+"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
+  , (":*:","×"), (":+:","+"), (":.","∘"), (":>:","↦")
+  , (":-*","⊸")
   , ("\\","λ")
-  , ("lub","(⊔)"),("glb","(⊓)")
+  , ("lub","(⊔)"), ("glb","(⊓)"), ("[=","⊑"), ("]=","⊒")
   , ("mempty","∅"), ("mappend","(⊕)"), ("op","(⊙)")
   -- , ("<*>","⊛")
   , ("undefined","⊥"), ("bottom","⊥")
-  , ("<-","←"), ("::","∷"), ("..","‥"), ("...","⋯")
+  , ("<-","←"), ("-<", "⤙") -- "−≺"
+  , ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
   , ("=~","≅")
   -- Move subsets of the rest into specific pages, via the "subst-map"
   -- metadata tag.
   , (":->", "↣"), (":->:","⇰") -- or ⇢, ↦, ↣, ➵, ➟
-  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"),("~>*", "↝*") -- or ⇨
+  , (":>", "⇴")
+  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"), ("~>*", "↝*") -- or ⇨
+  , ("+>", "↦"), ("<+", "↤")
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
   , ("||","∨"), ("&&","∧") -- maybe
