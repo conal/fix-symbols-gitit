@@ -46,7 +46,7 @@ plugin :: Plugin
 
 plugin = PageTransform $ \ p ->
   do Context { ctxMeta = meta } <- get
-     liftIO $ putStrLn $ "meta data: " ++ show meta
+     -- liftIO $ putStrLn $ "meta data: " ++ show meta
      let specials = Map.fromList (fromMaybe [] (read <$> lookup "substMap" meta))
      return $ rewriter specials p
 
@@ -141,9 +141,9 @@ substMap = Map.fromList $
   , ("forall","∀"),("exists","∃"),(dotLex,".")
   , ("undecided", "…")
   , ("->","→"),(".","∘"),(":*","×"),(":+","+"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
-  , (":*:","×"), (":+:","+"), (":.","∘"), (":>:","↦")
+  , (":*:","×"), (":+:","+"), (":^:","⇑"), (":.","∘"), (":>:","↦")
   , (":-*","⊸")
-  , ("\\","λ")
+  , ("\\","λ"), ("/\\","Λ")
   , ("lub","(⊔)"), ("glb","(⊓)"), ("[=","⊑"), ("]=","⊒")
   , ("mempty","∅"), ("mappend","(⊕)"), ("op","(⊙)")
   -- , ("<*>","⊛")
@@ -156,12 +156,18 @@ substMap = Map.fromList $
   -- metadata tag.
   , (":->", "↣"), (":->:","⇰") -- or ⇢, ↦, ↣, ➵, ➟
   , (":>", "⇴")
-  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"), ("~>*", "↝*") -- or ⇨
+  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"), ("~>*", "↝*"), (":=>","⇨")
   , ("+>", "↦"), ("<+", "↤")
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
-  , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
+  -- Sadly, I'm not seeing the semantic bracket characters in Firefox 21,
+  -- though I see them in Chrome and Safari. Is my problem with the default font?
+  -- , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
+  , ("[|","["), ("|]","]")
   , ("||","∨"), ("&&","∧") -- maybe
   , ("abutWE","(⇔)"), ("abutSN","(⇕)")
+
+  -- Experimental. Notation from "Calculating Functional Programs"
+  , ("+++","+"), ("&&&","△"), ("***", "×"), ("|||","▽")
 
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
   , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
