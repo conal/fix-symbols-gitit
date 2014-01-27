@@ -25,7 +25,7 @@ module Network.Gitit.Plugin.FixSymbols
 import Network.Gitit.Interface
 
 import Data.Char (isUpper)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe,isJust)
 import Data.List (isSuffixOf)
 
 import Data.Monoid (Monoid(..))
@@ -118,7 +118,10 @@ stripParens ('(':s) | not (null s) && last s == ')' = Just (init s)
 stripParens _ = Nothing
 
 translateLex :: Subst -> Unop String
+translateLex subst ('\\':s') | isJust (Map.lookup s' subst) = s'
 translateLex subst s = fromMaybe s $ Map.lookup s subst
+
+-- The first translateLex case avoids rewriting backslash-escaped lexemes.
 
 {- 
 
@@ -141,13 +144,14 @@ substMap = Map.fromList $
   , ("forall","∀"),("exists","∃"),(dotLex,".")
   , ("undecided", "…")
   , ("->","→"),(".","∘"),(":*","×"),(":+","+"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
-  , (":*:","×"), (":+:","+"), (":^:","⇑"), (":.","∘"), (":>:","↦")
+  , (":*:","×"), (":+:","+"), (":^:","⇑"), (":>:","↦")
+  -- , (":.","∘")
   , (":-*","⊸")
   , ("\\","λ"), ("/\\","Λ")
   , ("lub","(⊔)"), ("glb","(⊓)"), ("[=","⊑"), ("]=","⊒")
   , ("mempty","∅"), ("mappend","(⊕)"), ("op","(⊙)")
   -- , ("<*>","⊛")
-  , ("undefined","⊥"), ("bottom","⊥")
+  , ("undefined","⊥") -- , ("bottom","⊥")
   , ("<-","←"), ("-<", "⤙") -- "−≺"
   , ("::","∷"), ("..","‥"), ("...","⋯")
   , ("==","≡"), ("/=","≠")
@@ -156,7 +160,7 @@ substMap = Map.fromList $
   -- metadata tag.
   , (":->", "↣"), (":->:","⇰") -- or ⇢, ↦, ↣, ➵, ➟
   , (":>", "⇴")
-  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"), ("~>*", "↝*"), (":=>","⇨")
+  , (":-+>", "☞"), ("-->", "⇢"), ("~>", "↝"), ("~>*", "↝*"), ("<~", "↜"), ("*<~", "*↜"), (":=>","⇨") 
   , ("+>", "↦"), ("<+", "↤")
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   -- Sadly, I'm not seeing the semantic bracket characters in Firefox 21,
@@ -165,10 +169,9 @@ substMap = Map.fromList $
   , ("[|","["), ("|]","]")
   , ("||","∨"), ("&&","∧") -- maybe
   , ("abutWE","(⇔)"), ("abutSN","(⇕)")
-
   -- Experimental. Notation from "Calculating Functional Programs"
-  , ("+++","+"), ("&&&","△"), ("***", "×"), ("|||","▽")
-
+  -- Moved into specific blog posts
+  -- , ("&&&","△"), ("***", "×"), ("|||","▽"), ("+++","+")
   , ("alpha","α") , ("beta","β") , ("gamma","γ") , ("delta","δ")
   , ("epsilon","ε") , ("zeta","ζ") , ("eta","η") , ("theta","θ")
   , ("iota","ι") , ("kappa","κ") , ("lambda","λ") , ("mu","μ") , ("nu","ν")
