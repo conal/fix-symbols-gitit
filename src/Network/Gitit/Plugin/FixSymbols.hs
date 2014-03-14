@@ -90,7 +90,7 @@ fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
 isQuantifier :: String -> Bool
-isQuantifier = (`elem` ["forall","exists"])
+isQuantifier = (`elem` ["forall","exists","∀","∃"])
 
 -- Misc tweaks on lexeme streams, including determining whether a "." is a
 -- function composition, part of forall, a qualified name, or the end of a
@@ -101,9 +101,9 @@ fixLex ("[":"|":ss) = "[|" : fixLex ss   -- open  semantic bracket
 fixLex ("|":"]":ss) = "|]" : fixLex ss   -- close semantic bracket
 fixLex ("[":"=":ss) = "[=" : fixLex ss   -- less defined ⊑
 fixLex ("]":"=":ss) = "]=" : fixLex ss   -- more defined ⊒
-fixLex (ss@(q:_)) | isQuantifier q = before ++ (dotLex : fixLex after) -- forall a b c. ...
- where
-   (before,(".":after)) = break (== ".") ss
+fixLex (ss@(q:_)) | isQuantifier q       -- forall a b c. ...
+                  , (before,(".":after)) <- break (== ".") ss =
+ before ++ (dotLex : fixLex after)   
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
 -- fixLex (s@(c:_):".":ss)
 --   | not (isSpace c) && (null ss || isSpace (head (head ss))) = fixLex ((s++"."):ss) -- end of sentence
@@ -149,7 +149,7 @@ substMap = Map.fromList $
   , (":-*","⊸")
   , ("\\","λ"), ("/\\","Λ")
   , ("lub","(⊔)"), ("glb","(⊓)"), ("[=","⊑"), ("]=","⊒")
-  , ("mempty","∅"), ("mappend","(⊕)"), ("op","(⊙)")
+  , ("mempty","∅"), ("mappend","(⊕)") -- , ("op","(⊙)")
   -- , ("<*>","⊛")
   , ("undefined","⊥") -- , ("bottom","⊥")
   , ("<-","←"), ("-<", "⤙") -- "−≺"

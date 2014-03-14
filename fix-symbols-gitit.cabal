@@ -1,5 +1,5 @@
 Name:                fix-symbols-gitit
-Version:             0.1.6
+Version:             0.1.7
 Synopsis:            Gitit plugin: Turn some Haskell symbols into pretty math symbols.
 Category:            Text
 Cabal-Version:       >= 1.6
