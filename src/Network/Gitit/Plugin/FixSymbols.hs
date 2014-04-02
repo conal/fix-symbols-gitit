@@ -90,7 +90,7 @@ fixInfix ("`":s:"`":ss) | Just op <- stripParens s = op : fixInfix ss
 fixInfix (s : ss) = s : fixInfix ss
 
 isQuantifier :: String -> Bool
-isQuantifier = (`elem` ["forall","exists","∀","∃"])
+isQuantifier = (`elem` ["forall","exists","∀","∃","\\/"])
 
 -- Misc tweaks on lexeme streams, including determining whether a "." is a
 -- function composition, part of forall, a qualified name, or the end of a
@@ -141,7 +141,7 @@ substMap :: Subst
 substMap = Map.fromList $
   [ ("<=","≤"), (">=", "≥")
   , ("intersect", "(∩)"), ("union", "(∪)"), ("elem", "(∈)"), ("member", "(∈)")
-  , ("forall","∀"),("exists","∃"),(dotLex,".")
+  , ("forall","∀"),("exists","∃"), ("\\/","∀"),(dotLex,".")
   , ("undecided", "…")
   , ("->","→"),(".","∘"),(":*","×"),(":+","+"),("=>","⇒"), ("<==>","⟺") -- or "⇔"
   , (":*:","×"), (":+:","+"), (":^:","⇑"), (":>:","↦")
