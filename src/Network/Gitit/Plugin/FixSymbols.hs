@@ -189,8 +189,8 @@ substMap = Map.fromList $
 
 -- Experiments in string dissection. Simplified lexing.
 
--- | Dissect a string of haskell code into lexemes.
--- Mainly uses Prelude's 'lex', but preserves spaces.
+-- | Dissect a string of haskell code into lexemes. Mainly uses
+-- Prelude's 'lex', but preserves spaces and end-of-line comments.
 lexString :: String -> [String]
 lexString "" = []
 lexString (s@('-':'-':_)) = [s]
