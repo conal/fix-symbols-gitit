@@ -105,9 +105,6 @@ fixLex (ss@(q:_)) | isQuantifier q       -- forall a b c. ...
                   , (before,(".":after)) <- break (== ".") ss =
  before ++ (dotLex : fixLex after)   
 fixLex (s@(c:_):".":ss) | isUpper c = fixLex ((s++"."):ss) -- qualified name
--- fixLex (s@(c:_):".":ss)
---   | not (isSpace c) && (null ss || isSpace (head (head ss))) = fixLex ((s++"."):ss) -- end of sentence
-fixLex (s:".":ss@(" ":_)) | s /= " " = s : dotLex : fixLex ss -- end of sentence
 fixLex (s : ss) = s : fixLex ss
 
 dotLex :: String
@@ -196,6 +193,7 @@ substMap = Map.fromList $
 -- Mainly uses Prelude's 'lex', but preserves spaces.
 lexString :: String -> [String]
 lexString "" = []
+lexString (s@('-':'-':_)) = [s]
 lexString (c:s') | c `elem` " \n\t" = [c] : lexString s'
 lexString s | [(h,t)] <- lex s = h : lexString t
 lexString (c:s') = [c] : lexString s'
