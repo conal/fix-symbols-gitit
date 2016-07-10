@@ -197,3 +197,5 @@ lexString (s@('-':'-':_)) = [s]
 lexString (c:s') | c `elem` " \n\t" = [c] : lexString s'
 lexString s | [(h,t)] <- lex s = h : lexString t
 lexString (c:s') = [c] : lexString s'
+
+-- To do: Fix up code segments within comments.
