@@ -193,7 +193,9 @@ substMap = Map.fromList $
 -- Prelude's 'lex', but preserves spaces and end-of-line comments.
 lexString :: String -> [String]
 lexString "" = []
-lexString (s@('-':'-':_)) = [s]
+lexString (s@('-':'-':_)) = line : lexString rest
+ where
+   (line,rest) = break (== '\n') s
 lexString (c:s') | c `elem` " \n\t" = [c] : lexString s'
 lexString s | [(h,t)] <- lex s = h : lexString t
 lexString (c:s') = [c] : lexString s'
