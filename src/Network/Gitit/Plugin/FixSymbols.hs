@@ -146,7 +146,8 @@ substMap = Map.fromList $
   , (":-*","⊸")
   , ("\\","λ"), ("/\\","Λ")
   , ("lub","(⊔)"), ("glb","(⊓)"), ("[=","⊑"), ("]=","⊒")
-  , ("mempty","∅"), ("mappend","(⊕)") -- , ("op","(⊙)")
+  , ("mempty","∅"), ("mappend","(♢)"),("<>","♢")
+  -- , ("mappend","(⊕)") -- , ("op","(⊙)")
   -- , ("<*>","⊛")
   , ("undefined","⊥") -- , ("bottom","⊥")
   , ("<-","←"), ("-<", "⤙") -- "−≺"
@@ -162,8 +163,8 @@ substMap = Map.fromList $
   , (":^+", "➴"), (":+^", "➶") -- top-down vs bottom-up comp -- ↥ ↧ ↱↰ ↥ ↧ ⇤ ⇥ ⤒ ↱ ↲ ↳ ↰ ➷ ➸ ➹
   -- Sadly, I'm not seeing the semantic bracket characters in Firefox 21,
   -- though I see them in Chrome and Safari. Is my problem with the default font?
-  -- , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
-  , ("[|","["), ("|]","]")
+  , ("[|","⟦"), ("|]","⟧")  -- semantic brackets
+  -- , ("[|","["), ("|]","]")
   , ("||","∨"), ("&&","∧") -- maybe
   , ("abutWE","(⇔)"), ("abutSN","(⇕)")
   -- Experimental. Notation from "Calculating Functional Programs"
