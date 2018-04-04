@@ -1,3 +1,7 @@
+**Note:** This repository is subsumed by [gitit-to-blog](https://github.com/conal/gitit-to-blog).
+
+* * * * * * * * * * * * * * * * * * * *
+
 This [Haskell](http://haskell.org)-based project is a simple [gitit](http://gitit.net/) plugin that turns some Haskell symbols into pretty math symbols.
 
 Compile the project with `cabal install fix-symbols-gitit` (or just `cabal install` if you've already downloaded the source and are in its main directory).
